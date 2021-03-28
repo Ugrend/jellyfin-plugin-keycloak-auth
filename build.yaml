@@ -1,16 +1,16 @@
 ---
-name: "Template"
-guid: "eb5d7894-8eef-4b36-aa6f-5d124e828ce1"
+name: "Keycloak Authentication"
+guid: "40886866-b3dd-4d6a-bf9b-25c83e6c3d10"
 version: "1.0.0.0"
 targetAbi: "10.7.0.0"
 framework: "net5.0"
-overview: "Short description about your plugin"
+overview: "Authenticate users against Keycloak"
 description: >
-  This is a longer description that can span more than one
-  line and include details about your plugin.
-category: "General"
-owner: "jellyfin"
+  Authenticate users against Keycloak.
+category: "Authentication"
+owner: "Ugrend"
 artifacts:
-- "Jellyfin.Plugin.Template.dll"
+- "Jellyfin.Plugin.Keycloak.dll"
+- "JWT.dll"
 changelog: >
   changelog

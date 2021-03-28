@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Keycloak</title>
+</head>
+<body>
+<div id="TemplateConfigPage" data-role="page" class="page type-interior pluginConfigurationPage" data-require="emby-input,emby-button,emby-select,emby-checkbox">
+    <div data-role="content">
+        <div class="content-primary">
+            <form id="TemplateConfigForm">
+                <div class="checkboxContainer checkboxContainer-withDescription">
+                    <label class="emby-checkbox-label">
+                        <input id="CreateUser" name="TrueFalseCheckBox" type="checkbox" is="emby-checkbox"/>
+                        <span>Create User if doesn't exist</span>
+                    </label>
+                </div>
+                <div class="inputContainer">
+                    <label class="inputLabel inputLabelUnfocused" for="AuthServerUrl">Auth Server URL</label>
+                    <input id="AuthServerUrl" name="AuthServerUrl" type="text" is="emby-input"/>
+                    <div class="fieldDescription">Base Keycloak auth URI</div>
+                </div>
+                <div class="inputContainer">
+                    <label class="inputeLabel inputLabelUnfocused" for="AString">Realm</label>
+                    <input id="Realm" name="AString" type="text" is="emby-input"/>
+                    <div class="fieldDescription">Keycloak Realm</div>
+                </div>
+                <div class="inputContainer">
+                    <label class="inputeLabel inputLabelUnfocused" for="AString">Resource/Client</label>
+                    <input id="Resource" name="AString" type="text" is="emby-input"/>
+                    <div class="fieldDescription">Keycloak Resource/Client</div>
+                </div>
+                <div class="inputContainer">
+                    <label class="inputeLabel inputLabelUnfocused" for="ClientSecret">Client Secret</label>
+                    <input id="ClientSecret" name="AString" type="text" is="emby-input"/>
+                    <div class="fieldDescription">Client Secret</div>
+                </div>
+                <div>
+                    <button is="emby-button" type="submit" class="raised button-submit block emby-button">
+                        <span>Save</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <script type="text/javascript">
+        var KeycloakPluginConfig = {
+            pluginUniqueId: '40886866-b3dd-4d6a-bf9b-25c83e6c3d10',
+            chkCreateUser: document.querySelector('#CreateUser'),
+            txtAuthServerUrl: document.querySelector('#AuthServerUrl'),
+            txtRealm: document.querySelector('#Realm'),
+            txtResource: document.querySelector('#Resource'),
+            txtClientSecret: document.querySelector('#ClientSecret'),
+        };
+
+        document.querySelector('#TemplateConfigPage')
+            .addEventListener('pageshow', function () {
+                Dashboard.showLoadingMsg();
+                ApiClient.getPluginConfiguration(KeycloakPluginConfig.pluginUniqueId).then(function (config) {
+                    KeycloakPluginConfig.chkCreateUser.checked = config.CreateUser;
+                    KeycloakPluginConfig.txtAuthServerUrl.value = config.AuthServerUrl;
+                    KeycloakPluginConfig.txtRealm.value = config.Realm;
+                    KeycloakPluginConfig.txtResource.value = config.Resource;
+                    KeycloakPluginConfig.txtClientSecret.value = config.ClientSecret;
+                    Dashboard.hideLoadingMsg();
+                });
+            });
+
+        document.querySelector('#TemplateConfigForm')
+            .addEventListener('submit', function (e) {
+                e.preventDefault();
+                Dashboard.showLoadingMsg();
+                ApiClient.getPluginConfiguration(KeycloakPluginConfig.pluginUniqueId).then(function (config) {
+                    config.CreateUser = KeycloakPluginConfig.chkCreateUser.checked;
+                    config.AuthServerUrl = KeycloakPluginConfig.txtAuthServerUrl.value;
+                    config.Realm = KeycloakPluginConfig.txtRealm.value;
+                    config.Resource = KeycloakPluginConfig.txtResource.value;
+                    config.ClientSecret = KeycloakPluginConfig.txtClientSecret.value;
+                    ApiClient.updatePluginConfiguration(KeycloakPluginConfig.pluginUniqueId, config).then(function (result) {
+                        Dashboard.processPluginConfigurationUpdateResult(result);
+                    });
+                });
+                return false;
+            });
+    </script>
+</div>
+</body>
+</html>
