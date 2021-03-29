@@ -11,6 +11,13 @@
             <form id="TemplateConfigForm">
                 <div class="checkboxContainer checkboxContainer-withDescription">
                     <label class="emby-checkbox-label">
+                        <input id="Enable2FA" name="TrueFalseCheckBox" type="checkbox" is="emby-checkbox"/>
+                        <span>Enable2FA</span>
+                    </label>
+                    <div class="fieldDescription">BIGHACK: add _2FA=CODEHERE to end of password when loging in</div>
+                </div>
+                <div class="checkboxContainer checkboxContainer-withDescription">
+                    <label class="emby-checkbox-label">
                         <input id="CreateUser" name="TrueFalseCheckBox" type="checkbox" is="emby-checkbox"/>
                         <span>Create User if doesn't exist</span>
                     </label>
@@ -51,6 +58,7 @@
             txtRealm: document.querySelector('#Realm'),
             txtResource: document.querySelector('#Resource'),
             txtClientSecret: document.querySelector('#ClientSecret'),
+            chkEnable2FA: document.querySelector('#Enable2FA'),
         };
 
         document.querySelector('#TemplateConfigPage')
@@ -62,6 +70,7 @@
                     KeycloakPluginConfig.txtRealm.value = config.Realm;
                     KeycloakPluginConfig.txtResource.value = config.Resource;
                     KeycloakPluginConfig.txtClientSecret.value = config.ClientSecret;
+                    KeycloakPluginConfig.chkEnable2FA.checked = config.Enable2FA;
                     Dashboard.hideLoadingMsg();
                 });
             });
@@ -76,6 +85,7 @@
                     config.Realm = KeycloakPluginConfig.txtRealm.value;
                     config.Resource = KeycloakPluginConfig.txtResource.value;
                     config.ClientSecret = KeycloakPluginConfig.txtClientSecret.value;
+                    config.Enable2FA = KeycloakPluginConfig.chkEnable2FA.checked;
                     ApiClient.updatePluginConfiguration(KeycloakPluginConfig.pluginUniqueId, config).then(function (result) {
                         Dashboard.processPluginConfigurationUpdateResult(result);
                     });

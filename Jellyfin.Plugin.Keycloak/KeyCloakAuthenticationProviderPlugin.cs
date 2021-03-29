@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Jellyfin.Data.Entities;
 using Jellyfin.Data.Enums;
@@ -22,12 +23,14 @@ namespace Jellyfin.Plugin.Keycloak
         private readonly ILogger<KeyCloakAuthenticationProviderPlugin> _logger;
         private readonly IApplicationHost _applicationHost;
         private  IUserManager _userManager;
+        private String TwoFactorPattern = @"(.*)_2FA=(.*)$";
 
         private bool CreateUser => Plugin.Instance.Configuration.CreateUser;
         private String AuthServerUrl => Plugin.Instance.Configuration.AuthServerUrl;
         private String Realm => Plugin.Instance.Configuration.Realm;
         private String Resource => Plugin.Instance.Configuration.Resource;
         private String ClientSecret => Plugin.Instance.Configuration.ClientSecret;
+        private bool Enable2FA => Plugin.Instance.Configuration.Enable2FA;
 
         private HttpClient GetHttpClient()
         {
@@ -36,7 +39,7 @@ namespace Jellyfin.Plugin.Keycloak
 
         private String TokenURI => $"{AuthServerUrl}/realms/{Realm}/protocol/openid-connect/token";
 
-        private async Task<KeycloakUser> GetKeycloakUser(string username, string password)
+        private async Task<KeycloakUser> GetKeycloakUser(string username, string password, string totp)
         {
             var httpClient = GetHttpClient();
             var keyValues = new List<KeyValuePair<string, string>>();
@@ -47,6 +50,11 @@ namespace Jellyfin.Plugin.Keycloak
             if (!String.IsNullOrWhiteSpace(ClientSecret))
             {
                 keyValues.Add(new KeyValuePair<string, string>("client_secret", ClientSecret));
+            }
+
+            if (!String.IsNullOrWhiteSpace(totp))
+            {
+                keyValues.Add(new KeyValuePair<string, string>("totp", totp));
             }
 
             var content = new FormUrlEncodedContent(keyValues);
@@ -103,6 +111,16 @@ namespace Jellyfin.Plugin.Keycloak
         public async Task<ProviderAuthenticationResult> Authenticate(string username, string password)
         {
             _userManager ??= _applicationHost.Resolve<IUserManager>();
+            string totp = null;
+            if (Enable2FA)
+            {
+                var match = Regex.Match(password, TwoFactorPattern);
+                if (match.Success)
+                {
+                    password = match.Groups[1].Value;
+                    totp = match.Groups[2].Value;
+                }
+            }
             User user = null;
             try
             {
@@ -113,7 +131,7 @@ namespace Jellyfin.Plugin.Keycloak
                 _logger.LogWarning("User Manager could not find a user for Keycloak User, this may not be fatal", e);
             }
 
-            KeycloakUser keycloakUser = await GetKeycloakUser(username, password);
+            KeycloakUser keycloakUser = await GetKeycloakUser(username, password, totp);
             if (keycloakUser == null)
             {
                 throw new AuthenticationException("Error completing Keycloak login. Invalid username or password.");
